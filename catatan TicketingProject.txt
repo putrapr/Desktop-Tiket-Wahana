@@ -1,0 +1,22 @@
+C:\Users\Asus\Documents\NetBeansProjects\SI Penjualan Tiket Wahana Java Project
+
+C:\Users\Asus\Documents\NetBeansProjects\SI Penjualan Tiket Wahana Java Project\src\img\icons8_sharechat_48px.png
+
+
+Leuwi Pangaduan
+Jl. Kp. Muhara, Ds. Bojong Koneng, Kec. Babakan Madang, Kab. Bogor, Jawa Barat
+Telp. 0858-9172-8858
+
+rgb(139,199,62)
+
+id_pesanan, tgl tiket, kategori, jumlah, status, tgl pesan.
+
+Id Penjualan | Id Pesanan | Jenis Pembayaran | Total | Tanggal Bayar | Pengguna |
+
+SELECT * FROM tb_penjualan JOIN tb_pesanan ON (tb_penjualan.id_pesanan = tb_pesanan.id_pesanan) JOIN tb_users ON (tb_penjualan.id_user = tb_users.id_user)
+
+new SimpleDateFormat("dd-MM-yyyy").format($F{tanggal_tiket})
+
+dd/MM/yyyy hh:mm:ss
+
+new SimpleDateFormat("dd/MM/yyyy HH:mm").format($F{last_login})
