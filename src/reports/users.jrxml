@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="pegawai" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="bce9be22-3795-4f12-9002-30b284850f44">
 	<property name="ireport.zoom" value="2.0"/>
-	<property name="ireport.x" value="0"/>
+	<property name="ireport.x" value="234"/>
 	<property name="ireport.y" value="351"/>
 	<style name="table">
 		<box>
@@ -234,7 +234,7 @@
 					<textFieldExpression><![CDATA["Halaman "+$V{PAGE_NUMBER}+" dari"]]></textFieldExpression>
 				</textField>
 				<textField evaluationTime="Report">
-					<reportElement uuid="b00966f6-fe17-4162-b6d3-04cdd8bac12d" x="515" y="0" width="40" height="20" forecolor="#FFFFFF"/>
+					<reportElement uuid="b00966f6-fe17-4162-b6d3-04cdd8bac12d" x="515" y="0" width="40" height="20" isPrintInFirstWholeBand="true" forecolor="#FFFFFF"/>
 					<textElement textAlignment="Right" verticalAlignment="Middle">
 						<paragraph rightIndent="5"/>
 					</textElement>

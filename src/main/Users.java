@@ -178,7 +178,9 @@ public class Users extends javax.swing.JFrame {
         try {
             Timestamp date = new Timestamp(new Date().getTime());
             stat = con.createStatement();
-            String SQL = "insert into tb_users(username,password,level,last_login) values('"+username.getText()+"','"+password.getText()+"','"+lev+"','"+date+"')";
+            String SQL = "INSERT INTO tb_users(username,password,level,last_login) "
+                    + "values('"+username.getText()+"','"+password.getText()+"','"
+                    +lev+"','"+date+"')";
             stat.executeUpdate(SQL);
             tabel();
             stat.close();
@@ -306,7 +308,6 @@ public class Users extends javax.swing.JFrame {
         // Memberi nama pada setiap kolom tabel
         tb.addColumn("ID User");
         tb.addColumn("Username");
-        tb.addColumn("Password");
         tb.addColumn("Level");
         tb.addColumn("Last Login");
         tableUser.setModel(tb);
@@ -320,7 +321,6 @@ public class Users extends javax.swing.JFrame {
                 tb.addRow(new Object[]{
                     rs.getInt("id_user"),
                     rs.getString("username"),
-                    rs.getString("password"),
                     rs.getString("level"),
                     rs.getDate("last_login")
                 });

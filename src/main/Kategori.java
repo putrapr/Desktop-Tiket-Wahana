@@ -8,6 +8,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
 import java.sql.ResultSet;
+import java.sql.Timestamp;
+import java.util.Date;
 import javax.security.auth.Subject;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
@@ -24,7 +26,7 @@ public class Kategori extends javax.swing.JFrame {
     String sql;
     int lev;
     String idkategori;
-    int angkapajak,angkaharga;
+    int angkapajak,angkaharga, hargajual;
     
     /**
      * Creates new form Kategori
@@ -87,11 +89,6 @@ public class Kategori extends javax.swing.JFrame {
                 hapusMouseClicked(evt);
             }
         });
-        hapus.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                hapusActionPerformed(evt);
-            }
-        });
 
         tableUser.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -111,24 +108,7 @@ public class Kategori extends javax.swing.JFrame {
         });
         jScrollPane1.setViewportView(tableUser);
 
-        harga.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                hargaKeyPressed(evt);
-            }
-        });
-
         jLabel4.setText("Pajak (%)");
-
-        pajak.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                pajakActionPerformed(evt);
-            }
-        });
-        pajak.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                pajakKeyPressed(evt);
-            }
-        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -205,14 +185,17 @@ public class Kategori extends javax.swing.JFrame {
         Koneksi DB = new Koneksi();
         DB.config();
         con = DB.con;
-        stat = DB.stm;
-        try{
+        stat = DB.stm;        
         angkapajak = Integer.parseInt(pajak.getText());
         angkaharga = Integer.parseInt(harga.getText());
+        hargajual = (angkaharga*angkapajak/100)+angkaharga;
         
-            java.sql.Timestamp date = new java.sql.Timestamp(new java.util.Date().getTime());
+        try {
+            Timestamp date = new Timestamp(new Date().getTime());
             stat = con.createStatement();
-            String SQL = "insert into tb_kategori(nama,harga,stok,pajak,harga_jual) values('"+nama.getText()+"','"+harga.getText()+"','"+stok.getText()+"','"+pajak.getText()+"','"+angkapajak*angkaharga/100+"')";
+            String SQL = "INSERT INTO tb_kategori(nama,harga,stok,pajak,harga_jual) "
+                       + "values('"+nama.getText()+"','"+harga.getText()+"','"
+                       +stok.getText()+"','"+pajak.getText()+"','"+hargajual+"')";
             stat.executeUpdate(SQL);
             tabel();
             stat.close();
@@ -220,7 +203,7 @@ public class Kategori extends javax.swing.JFrame {
             Clear();
             JOptionPane.showMessageDialog(null, "berhasil simpan");
 
-        }catch(Exception exc){
+        } catch (Exception exc) {
             System.err.println(exc.getMessage());
         }
     }//GEN-LAST:event_tambahMouseClicked
@@ -232,18 +215,25 @@ public class Kategori extends javax.swing.JFrame {
         DB.config();
         con = DB.con;
         stat = DB.stm;
-        try{
-            java.sql.Timestamp date = new java.sql.Timestamp(new java.util.Date().getTime());
-            stat = con.createStatement();
-            String SQL = "update tb_kategori set nama ='"+nama.getText()+"',harga='"+harga.getText()+"',stok='"+stok.getText()+"' where id_kategori="+idkategori;
-            stat.executeUpdate(SQL);
+        angkapajak = Integer.parseInt(pajak.getText());
+        angkaharga = Integer.parseInt(harga.getText());
+        hargajual = (angkaharga*angkapajak/100)+angkaharga;
+        String query = "UPDATE tb_kategori SET nama ='"+nama.getText()
+                     +"',harga='"+harga.getText()+"',stok='"+stok.getText()
+                     +"',pajak='"+pajak.getText()+"',harga_jual='"+hargajual
+                     +"' WHERE id_kategori="+idkategori;
+        
+        try {            
+            stat = con.createStatement();            
+            stat.executeUpdate(query);
             tabel();
             stat.close();
             con.close();
+            System.out.println(query);
             Clear();
-            JOptionPane.showMessageDialog(null, "berhasil diupdate");
+//            JOptionPane.showMessageDialog(null, "berhasil diupdate");
 
-        }catch(Exception exc){
+        } catch(Exception exc){
             System.err.println(exc.getMessage());
         }
     }//GEN-LAST:event_editMouseClicked
@@ -255,10 +245,9 @@ public class Kategori extends javax.swing.JFrame {
         DB.config();
         con = DB.con;
         stat = DB.stm;
-        try{
-            java.sql.Timestamp date = new java.sql.Timestamp(new java.util.Date().getTime());
+        try {
             stat = con.createStatement();
-            String SQL = "delete from tb_kategori where id_kategori ="+idkategori;
+            String SQL = "DELETE FROM tb_kategori WHERE id_kategori ="+idkategori;
             stat.executeUpdate(SQL);
             tabel();
             stat.close();
@@ -266,7 +255,7 @@ public class Kategori extends javax.swing.JFrame {
             Clear();
             JOptionPane.showMessageDialog(null, "berhasil dihapus");
 
-        }catch(Exception exc){
+        } catch(Exception exc){
             System.err.println(exc.getMessage());
         }
     }//GEN-LAST:event_hapusMouseClicked
@@ -275,31 +264,34 @@ public class Kategori extends javax.swing.JFrame {
         // TODO add your handling code here:
         int row = tableUser.getSelectedRow();
         TableModel model = tableUser.getModel();
-        idkategori = model.getValueAt(row, 0).toString();
-        nama.setText(model.getValueAt(row, 1).toString());
-        harga.setText(model.getValueAt(row, 2).toString());
+        String str_nama = model.getValueAt(row, 1).toString();
+        String str_harga = model.getValueAt(row, 2).toString();
+        idkategori = getId(str_nama, str_harga);
+        nama.setText(str_nama);
+        harga.setText(str_harga);
         stok.setText(model.getValueAt(row, 3).toString());
-        pajak.setText(model.getValueAt(row, 4).toString());
+        pajak.setText(model.getValueAt(row, 4).toString());        
     }//GEN-LAST:event_tableUserMouseClicked
 
-    private void pajakActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pajakActionPerformed
-        // TODO add your handling code here:
-        
-    }//GEN-LAST:event_pajakActionPerformed
-
-    private void pajakKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_pajakKeyPressed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_pajakKeyPressed
-
-    private void hargaKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_hargaKeyPressed
-        // TODO add your handling code here:
-        
-    }//GEN-LAST:event_hargaKeyPressed
-
-    private void hapusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_hapusActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_hapusActionPerformed
-
+    private String getId(String nama, String harga){
+        Koneksi DB = new Koneksi();
+        DB.config();
+        con = DB.con;
+        stat = DB.stm;
+        String query = "SELECT id_kategori FROM tb_kategori "
+                     + "WHERE nama = '"+nama+"' AND harga = '"+harga+"'";        
+        try {
+             stat = con.createStatement();
+             rs = stat.executeQuery(query);
+             if (rs.next()){
+                 return rs.getString("id_kategori");
+             }             
+        } catch (Exception e){
+            System.err.println(e.getMessage());
+        }
+        return "";
+    }
+    
     /**
      * @param args the command line arguments
      */
@@ -344,32 +336,31 @@ public class Kategori extends javax.swing.JFrame {
         
         DefaultTableModel tb= new DefaultTableModel();
         // Memberi nama pada setiap kolom tabel
-        tb.addColumn("ID Kategori");
+        tb.addColumn("No");
         tb.addColumn("Nama");
         tb.addColumn("Harga");
         tb.addColumn("Stok");
         tb.addColumn("Pajak");
         tb.addColumn("Harga Jual");
         tableUser.setModel(tb);
-        try{
-        // Mengambil data dari database
-        rs=stat.executeQuery("SELECT * FROM tb_kategori");
-
-        while (rs.next())
-        {
-        // Mengambil data dari database berdasarkan nama kolom pada tabel
-        // Lalu di tampilkan ke dalam JTable
-        tb.addRow(new Object[]{
-        rs.getString("id_kategori"),
-        rs.getString("nama"),
-        rs.getString("harga"),
-        rs.getString("stok"),
-        rs.getString("pajak"),
-        rs.getString("harga_jual")
-        });
-        }
-
-        }catch (Exception e){
+        try {
+            // Mengambil data dari database
+            rs = stat.executeQuery("SELECT * FROM tb_kategori");
+            int no = 0;
+            while(rs.next()) {
+                // Mengambil data dari database berdasarkan nama kolom pada tabel
+                // Lalu di tampilkan ke dalam JTable
+                tb.addRow(new Object[]{
+                    ++no,
+                    rs.getString("nama"),
+                    rs.getString("harga"),
+                    rs.getString("stok"),
+                    rs.getString("pajak"),
+                    rs.getString("harga_jual")
+                });
+            }
+        } catch(Exception e) {
+            System.err.println(e.getMessage());
         }
     }
 
