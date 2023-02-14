@@ -1,37 +1,27 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package main;
-import java.sql.Connection;
-import java.sql.DriverManager;
+import utility.KoneksiDB;
 import java.sql.Statement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.text.Format;
 import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
-import javax.security.auth.Subject;
+import java.util.Date;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
-/**
- *
+/*
  * @author user
  */
 public class Pesanan extends javax.swing.JFrame {
-    // deklarasi
-    Connection con;
-    Statement stat;
+    KoneksiDB DB = new KoneksiDB();
+    Statement stat = DB.stat;
     ResultSet rs;
-    String sql;
+    String query;
     String lev;
     String idpesanan;
     
-    /**
-     * Creates new form Pesanan
-     */
     public Pesanan() {
         initComponents();
         setLocationRelativeTo(null);
@@ -39,29 +29,48 @@ public class Pesanan extends javax.swing.JFrame {
         comboboxdb();
     }
     
+    private void tabel(){
+        DefaultTableModel tb = new DefaultTableModel();
+        tb.addColumn("Id Pesanan");
+        tb.addColumn("Tgl Tiket");
+        tb.addColumn("Kategori");
+        tb.addColumn("Jumlah");
+        tb.addColumn("Status");
+        tb.addColumn("Tgl Pesan");
+        tableUser.setModel(tb);
+        
+        query = "SELECT * FROM tb_pesanan";
+        try {
+            rs = stat.executeQuery(query); //rs = ResultSet <- hasil eksekusi query
+            while (rs.next()) {
+                tb.addRow(new Object[]{
+                    rs.getString("id_pesanan"),
+                    rs.getString("tanggal_tiket"),
+                    rs.getString("id_kategori"),
+                    rs.getString("jumlah"),
+                    rs.getString("status"),
+                    rs.getString("tanggal_pesan")
+                });
+            }
+        } catch(SQLException e) {
+            System.err.println(e.getMessage());
+        }
+    }    
+    
     public void comboboxdb(){
-        //pemanggilan fungsi koneksi database yang sudah kita buat pada class koneksi.java
-        Koneksi DB = new Koneksi();
-        DB.config();
-        con = DB.con;
-        stat = DB.stm;
-        try{
-            stat = con.createStatement();
-            String SQL = "select * from tb_kategori";
-            rs = stat.executeQuery(SQL);
+        String query = "SELECT * FROM tb_kategori";
+        try {            
+            rs = stat.executeQuery(query);
             while (rs.next()) {
                 kategori.addItem(rs.getString(1)+" - "+rs.getString(2));
                 //kategori adalah nama variabel Jcombobox
                 //rs.getString(2) adalah kolom nama_kategori yang diambil secara urut dimulai dari satu
             }
-
-        }catch(Exception exc){
-            System.err.println(exc.getMessage());
+        } catch(SQLException e){
+            System.err.println(e.getMessage());
         }
     }
     
-    
-
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -108,18 +117,12 @@ public class Pesanan extends javax.swing.JFrame {
 
         jLabel3.setText("Status");
 
-        status.setEditable(false);
         status.setText("baru");
 
         hapus.setText("Hapus");
         hapus.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 hapusMouseClicked(evt);
-            }
-        });
-        hapus.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                hapusActionPerformed(evt);
             }
         });
 
@@ -218,80 +221,56 @@ public class Pesanan extends javax.swing.JFrame {
     }     
     
     private void tambahMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tambahMouseClicked
-        // TODO add your handling code here:
-        //pemanggilan fungsi koneksi database yang sudah kita buat pada class koneksi.java
-        Koneksi DB = new Koneksi();
-        DB.config();
-        con = DB.con;
-        stat = DB.stm;
-        try{
-            Format formatter = new SimpleDateFormat("YYYY-MM-dd");
-            String tgltiket = formatter.format(tglTiket.getDate());
-            java.sql.Timestamp date = new java.sql.Timestamp(new java.util.Date().getTime());
-            stat = con.createStatement();
-            String SQL = "insert into tb_pesanan(tanggal_tiket,id_kategori,jumlah,status,tanggal_pesan) values('"+tgltiket+"','"+lev+"','"+jumlah.getText()+"','"+status.getText()+"','"+date+"')";
-            stat.executeUpdate(SQL);
+        Format formatter = new SimpleDateFormat("YYYY-MM-dd");
+        String tgltiket = formatter.format(tglTiket.getDate());
+        Timestamp date = new Timestamp(new Date().getTime());
+        query = "INSERT INTO tb_pesanan(tanggal_tiket,id_kategori,jumlah,status,tanggal_pesan) "
+                       + "VALUES('"+tgltiket+"','"+lev+"','"+jumlah.getText()+"','"+status.getText()+"','"+date+"')";
+        try {
+            stat.executeUpdate(query);
             tabel();
             stat.close();
-            con.close();
+            DB.conn.close();
             Clear();
             JOptionPane.showMessageDialog(null, "berhasil simpan");
-
-        }catch(Exception exc){
+        } catch(Exception exc) {
             System.err.println(exc.getMessage());
         }
     }//GEN-LAST:event_tambahMouseClicked
 
     private void editMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_editMouseClicked
-        // TODO add your handling code here:
-        //pemanggilan fungsi koneksi database yang sudah kita buat pada class koneksi.java
-        Koneksi DB = new Koneksi();
-        DB.config();
-        con = DB.con;
-        stat = DB.stm;
-        try{
-            Format formatter = new SimpleDateFormat("YYYY-MM-dd");
-            String tgltiket = formatter.format(tglTiket.getDate());
-            java.sql.Timestamp date = new java.sql.Timestamp(new java.util.Date().getTime());
-            stat = con.createStatement();
-            String SQL = "update tb_pesanan set tanggal_tiket='"+tgltiket+"',id_kategori='"+lev+"',jumlah='"+jumlah.getText()+"',status='"+status.getText()+"' where id_pesanan="+idpesanan;
-            stat.executeUpdate(SQL);
+        Format formatter = new SimpleDateFormat("YYYY-MM-dd");
+        String tgltiket = formatter.format(tglTiket.getDate());
+        query = "UPDATE tb_pesanan SET tanggal_tiket='"+tgltiket
+              +"',id_kategori='"+lev+"',jumlah='"+jumlah.getText()
+              +"',status='"+status.getText()+"' WHERE id_pesanan="+idpesanan;
+        try {
+            stat.executeUpdate(query);
             tabel();
             stat.close();
-            con.close();
+            DB.conn.close();
             Clear();
             JOptionPane.showMessageDialog(null, "berhasil diupdate");
-
-        }catch(Exception exc){
-            System.err.println(exc.getMessage());
+        } catch(SQLException e) {
+            System.err.println(e.getMessage());
         }
     }//GEN-LAST:event_editMouseClicked
 
     private void hapusMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_hapusMouseClicked
-        // TODO add your handling code here:
-        //pemanggilan fungsi koneksi database yang sudah kita buat pada class koneksi.java
-        Koneksi DB = new Koneksi();
-        DB.config();
-        con = DB.con;
-        stat = DB.stm;
-        try{
-            java.sql.Timestamp date = new java.sql.Timestamp(new java.util.Date().getTime());
-            stat = con.createStatement();
-            String SQL = "delete from tb_pesanan where id_pesanan ="+idpesanan;
-            stat.executeUpdate(SQL);
+        query = "DELETE FROM tb_pesanan WHERE id_pesanan ="+idpesanan;
+        try {
+            stat.executeUpdate(query);
             tabel();
             stat.close();
-            con.close();
+            DB.conn.close();
             Clear();
             JOptionPane.showMessageDialog(null, "berhasil dihapus");
-
-        }catch(Exception exc){
-            System.err.println(exc.getMessage());
+        } catch(SQLException e) {
+            System.err.println(e.getMessage());
         }
     }//GEN-LAST:event_hapusMouseClicked
 
     private void tableUserMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tableUserMouseClicked
-        // TODO add your handling code here:
         int row = tableUser.getSelectedRow();
         TableModel model = tableUser.getModel();
         idpesanan = model.getValueAt(row, 0).toString();
@@ -300,32 +279,9 @@ public class Pesanan extends javax.swing.JFrame {
     }//GEN-LAST:event_tableUserMouseClicked
 
     private void kategoriActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_kategoriActionPerformed
-        // TODO add your handling code here:
         lev = kategori.getSelectedItem().toString();
         lev = lev.split(" - ")[0];
     }//GEN-LAST:event_kategoriActionPerformed
-
-    private void hapusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_hapusActionPerformed
-        // TODO add your handling code here:
-        Koneksi DB = new Koneksi();
-        DB.config();
-        con = DB.con;
-        stat = DB.stm;
-        try{
-            java.sql.Timestamp date = new java.sql.Timestamp(new java.util.Date().getTime());
-            stat = con.createStatement();
-            String SQL = "delete from tb_pesanan where id_pesanan ="+idpesanan;
-            stat.executeUpdate(SQL);
-            tabel();
-            stat.close();
-            con.close();
-            Clear();
-            JOptionPane.showMessageDialog(null, "berhasil dihapus");
-
-        }catch(Exception exc){
-            System.err.println(exc.getMessage());
-        }
-    }//GEN-LAST:event_hapusActionPerformed
 
     /**
      * @param args the command line arguments
@@ -362,44 +318,6 @@ public class Pesanan extends javax.swing.JFrame {
         });
     }
 
-    private void tabel(){
-        //pemanggilan fungsi koneksi database yang sudah kita buat pada class koneksi.java
-        Koneksi DB = new Koneksi();
-        DB.config();
-        con = DB.con;
-        stat = DB.stm;
-        
-        DefaultTableModel tb= new DefaultTableModel();
-        // Memberi nama pada setiap kolom tabel
-        tb.addColumn("ID Pesanan");
-        tb.addColumn("Tgl Tiket");
-        tb.addColumn("Kategori");
-        tb.addColumn("Jumlah");
-        tb.addColumn("Status");
-        tb.addColumn("Tgl Pesan");
-        tableUser.setModel(tb);
-        try{
-        // Mengambil data dari database
-        rs=stat.executeQuery("SELECT * FROM tb_pesanan where status='baru'");
-
-        while (rs.next())
-        {
-        // Mengambil data dari database berdasarkan nama kolom pada tabel
-        // Lalu di tampilkan ke dalam JTable
-        tb.addRow(new Object[]{
-        rs.getString("id_pesanan"),
-        rs.getString("tanggal_tiket"),
-        rs.getString("id_kategori"),
-        rs.getString("jumlah"),
-        rs.getString("status"),
-        rs.getString("tanggal_pesan")
-        });
-        }
-
-        }catch (Exception e){
-        }
-    }    
-    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton edit;
     private javax.swing.JButton hapus;

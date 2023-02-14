@@ -1,42 +1,77 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package main;
-import java.sql.Connection;
-import java.sql.DriverManager;
+
+import utility.KoneksiDB;
 import java.sql.Statement;
 import java.sql.ResultSet;
-import java.sql.Timestamp;
-import java.util.Date;
-import javax.security.auth.Subject;
+import java.sql.SQLException;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
+
 /**
- *
  * @author user
  */
 public class Kategori extends javax.swing.JFrame {
-    // deklarasi
-    Connection con;
-    Statement stat;
+    KoneksiDB DB = new KoneksiDB();
+    Statement stat = DB.stat;
     ResultSet rs;
-    String sql;
-    int lev;
+    String query;
     String idkategori;
-    int angkapajak,angkaharga, hargajual;
+    int angkapajak,angkaharga, hargajual, lev;
     
-    /**
-     * Creates new form Kategori
-     */
     public Kategori() {
         initComponents();
         setLocationRelativeTo(null);
         tabel();
     }
+    
+    private void tabel(){
+        DefaultTableModel tb= new DefaultTableModel();
+        tb.addColumn("No");
+        tb.addColumn("Nama");
+        tb.addColumn("Harga");
+        tb.addColumn("Stok");
+        tb.addColumn("Pajak");
+        tb.addColumn("Harga Jual");
+        tableUser.setModel(tb);
+        
+        query = "SELECT * FROM tb_kategori";
+        int no = 0;
+        try {
+            rs = stat.executeQuery(query);
+            while(rs.next()) {
+                tb.addRow(new Object[]{
+                    ++no,
+                    rs.getString("nama"),
+                    rs.getString("harga"),
+                    rs.getString("stok"),
+                    rs.getString("pajak"),
+                    rs.getString("harga_jual")
+                });
+            }
+        } catch(SQLException e) {
+            System.err.println(e.getMessage());
+        }
+    }
+    
+    private void clear(){
+        nama.setText(null);
+        harga.setText(null);
+        stok.setText(null);
+        pajak.setText(null);
+    }
 
+    private String getId(String nama, String harga){
+        query = "SELECT id_kategori FROM tb_kategori "
+              + "WHERE nama = '"+nama+"' AND harga = '"+harga+"'";        
+        try {
+             rs = stat.executeQuery(query);
+             if (rs.next()) return rs.getString("id_kategori");
+        } catch (SQLException e){
+            System.err.println(e.getMessage());
+        }
+        return "";
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -172,91 +207,57 @@ public class Kategori extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void Clear(){
-        nama.setText(null);
-        harga.setText(null);
-        stok.setText(null);
-        pajak.setText(null);
-    }    
-    
     private void tambahMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tambahMouseClicked
-        // TODO add your handling code here:
-        //pemanggilan fungsi koneksi database yang sudah kita buat pada class koneksi.java
-        Koneksi DB = new Koneksi();
-        DB.config();
-        con = DB.con;
-        stat = DB.stm;        
         angkapajak = Integer.parseInt(pajak.getText());
         angkaharga = Integer.parseInt(harga.getText());
         hargajual = (angkaharga*angkapajak/100)+angkaharga;
-        
+        query = "INSERT INTO tb_kategori(nama,harga,stok,pajak,harga_jual) "
+              + "values('"+nama.getText()+"','"+harga.getText()+"','"
+              + stok.getText()+"','"+pajak.getText()+"','"+hargajual+"')";        
         try {
-            Timestamp date = new Timestamp(new Date().getTime());
-            stat = con.createStatement();
-            String SQL = "INSERT INTO tb_kategori(nama,harga,stok,pajak,harga_jual) "
-                       + "values('"+nama.getText()+"','"+harga.getText()+"','"
-                       +stok.getText()+"','"+pajak.getText()+"','"+hargajual+"')";
-            stat.executeUpdate(SQL);
+            stat.executeUpdate(query);
             tabel();
             stat.close();
-            con.close();
-            Clear();
+            DB.conn.close();
+            clear();
             JOptionPane.showMessageDialog(null, "berhasil simpan");
 
-        } catch (Exception exc) {
-            System.err.println(exc.getMessage());
+        } catch(SQLException e) {
+            System.err.println(e.getMessage());
         }
     }//GEN-LAST:event_tambahMouseClicked
 
     private void editMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_editMouseClicked
-        // TODO add your handling code here:
-        //pemanggilan fungsi koneksi database yang sudah kita buat pada class koneksi.java
-        Koneksi DB = new Koneksi();
-        DB.config();
-        con = DB.con;
-        stat = DB.stm;
         angkapajak = Integer.parseInt(pajak.getText());
         angkaharga = Integer.parseInt(harga.getText());
         hargajual = (angkaharga*angkapajak/100)+angkaharga;
         String query = "UPDATE tb_kategori SET nama ='"+nama.getText()
                      +"',harga='"+harga.getText()+"',stok='"+stok.getText()
                      +"',pajak='"+pajak.getText()+"',harga_jual='"+hargajual
-                     +"' WHERE id_kategori="+idkategori;
-        
+                     +"' WHERE id_kategori="+idkategori;        
         try {            
-            stat = con.createStatement();            
             stat.executeUpdate(query);
             tabel();
             stat.close();
-            con.close();
-            System.out.println(query);
-            Clear();
-//            JOptionPane.showMessageDialog(null, "berhasil diupdate");
-
-        } catch(Exception exc){
-            System.err.println(exc.getMessage());
+            DB.conn.close();
+            clear();
+            JOptionPane.showMessageDialog(null, "berhasil diupdate");
+        } catch(SQLException e) {
+            System.err.println(e.getMessage());
         }
     }//GEN-LAST:event_editMouseClicked
 
     private void hapusMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_hapusMouseClicked
-        // TODO add your handling code here:
-        //pemanggilan fungsi koneksi database yang sudah kita buat pada class koneksi.java
-        Koneksi DB = new Koneksi();
-        DB.config();
-        con = DB.con;
-        stat = DB.stm;
+        query = "DELETE FROM tb_kategori WHERE id_kategori ="+idkategori;
         try {
-            stat = con.createStatement();
-            String SQL = "DELETE FROM tb_kategori WHERE id_kategori ="+idkategori;
-            stat.executeUpdate(SQL);
+            stat.executeUpdate(query);
             tabel();
             stat.close();
-            con.close();
-            Clear();
+            DB.conn.close();
+            clear();
             JOptionPane.showMessageDialog(null, "berhasil dihapus");
-
-        } catch(Exception exc){
-            System.err.println(exc.getMessage());
+        } catch(SQLException e){
+            System.err.println(e.getMessage());
         }
     }//GEN-LAST:event_hapusMouseClicked
 
@@ -273,25 +274,6 @@ public class Kategori extends javax.swing.JFrame {
         pajak.setText(model.getValueAt(row, 4).toString());        
     }//GEN-LAST:event_tableUserMouseClicked
 
-    private String getId(String nama, String harga){
-        Koneksi DB = new Koneksi();
-        DB.config();
-        con = DB.con;
-        stat = DB.stm;
-        String query = "SELECT id_kategori FROM tb_kategori "
-                     + "WHERE nama = '"+nama+"' AND harga = '"+harga+"'";        
-        try {
-             stat = con.createStatement();
-             rs = stat.executeQuery(query);
-             if (rs.next()){
-                 return rs.getString("id_kategori");
-             }             
-        } catch (Exception e){
-            System.err.println(e.getMessage());
-        }
-        return "";
-    }
-    
     /**
      * @param args the command line arguments
      */
@@ -327,42 +309,7 @@ public class Kategori extends javax.swing.JFrame {
         });
     }
     
-    private void tabel(){
-        //pemanggilan fungsi koneksi database yang sudah kita buat pada class koneksi.java
-        Koneksi DB = new Koneksi();
-        DB.config();
-        con = DB.con;
-        stat = DB.stm;
-        
-        DefaultTableModel tb= new DefaultTableModel();
-        // Memberi nama pada setiap kolom tabel
-        tb.addColumn("No");
-        tb.addColumn("Nama");
-        tb.addColumn("Harga");
-        tb.addColumn("Stok");
-        tb.addColumn("Pajak");
-        tb.addColumn("Harga Jual");
-        tableUser.setModel(tb);
-        try {
-            // Mengambil data dari database
-            rs = stat.executeQuery("SELECT * FROM tb_kategori");
-            int no = 0;
-            while(rs.next()) {
-                // Mengambil data dari database berdasarkan nama kolom pada tabel
-                // Lalu di tampilkan ke dalam JTable
-                tb.addRow(new Object[]{
-                    ++no,
-                    rs.getString("nama"),
-                    rs.getString("harga"),
-                    rs.getString("stok"),
-                    rs.getString("pajak"),
-                    rs.getString("harga_jual")
-                });
-            }
-        } catch(Exception e) {
-            System.err.println(e.getMessage());
-        }
-    }
+    
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton edit;

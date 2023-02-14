@@ -1,39 +1,52 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package main;
-import java.sql.Connection;
-import java.sql.DriverManager;
+import utility.KoneksiDB;
 import java.sql.Statement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Date;
-import javax.security.auth.Subject;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
+
 /**
- *
  * @author user
  */
 public class Users extends javax.swing.JFrame {
-    // deklarasi
-    Connection con;
-    Statement stat;
+    Timestamp date = new Timestamp(new Date().getTime());
+    KoneksiDB DB = new KoneksiDB();
+    Statement stat = DB.stat;
     ResultSet rs;
-    String sql;
+    String query;
     int lev;
     String iduser;
     
-    /**
-     * Creates new form Users
-     */
     public Users() {
         initComponents();
         setLocationRelativeTo(null);
         tabel();
+    }
+    
+    private void tabel(){
+        DefaultTableModel tb= new DefaultTableModel();
+        tb.addColumn("ID User");
+        tb.addColumn("Username");
+        tb.addColumn("Level");
+        tb.addColumn("Last Login");
+        tableUser.setModel(tb);
+        try {
+            rs = stat.executeQuery("SELECT * FROM tb_users");
+            while(rs.next()) {
+                tb.addRow(new Object[]{
+                    rs.getInt("id_user"),
+                    rs.getString("username"),
+                    rs.getString("level"),
+                    rs.getDate("last_login")
+                });
+            }
+        } catch (SQLException e){
+            System.err.println(e.getMessage());
+        }
     }
 
     /**
@@ -163,101 +176,74 @@ public class Users extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void Clear(){
+    private void clear(){
         username.setText(null);
         password.setText(null);
     }
     
     private void tambahMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tambahMouseClicked
-        // TODO add your handling code here:
-        //pemanggilan fungsi koneksi database yang sudah kita buat pada class koneksi.java
-        Koneksi DB = new Koneksi();
-        DB.config();
-        con = DB.con;
-        stat = DB.stm;
-        try {
-            Timestamp date = new Timestamp(new Date().getTime());
-            stat = con.createStatement();
-            String SQL = "INSERT INTO tb_users(username,password,level,last_login) "
-                    + "values('"+username.getText()+"','"+password.getText()+"','"
-                    +lev+"','"+date+"')";
-            stat.executeUpdate(SQL);
+        query = "INSERT INTO tb_users(username,password,level,last_login) "
+              + "VALUES('"+username.getText()+"','"+password.getText()+"','"
+              + lev+"','"+date+"')";
+        try {            
+            stat.executeUpdate(query);
             tabel();
             stat.close();
-            con.close();
-            Clear();
-            JOptionPane.showMessageDialog(null, "berhasil simpan");
-            
-        } catch(Exception exc) {
-            System.err.println(exc.getMessage());
+            DB.conn.close();
+            clear();
+            JOptionPane.showMessageDialog(null, "berhasil simpan");            
+        } catch(SQLException e) {
+            System.err.println(e.getMessage());
         }
     }//GEN-LAST:event_tambahMouseClicked
 
     private void tableUserMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tableUserMouseClicked
-        // TODO add your handling code here:
-            int row = tableUser.getSelectedRow();
-            TableModel model = tableUser.getModel();
-            iduser = model.getValueAt(row, 0).toString();
-            username.setText(model.getValueAt(row, 1).toString());
-            password.setText(model.getValueAt(row, 2).toString());
-            String lev = model.getValueAt(row, 3).toString();
-            switch(lev){
-                case "0":
-                    level.setSelectedIndex(0);
-                    break;
-                default:
-                    level.setSelectedIndex(1);
-                    break;
-            }
+        int row = tableUser.getSelectedRow();
+        TableModel model = tableUser.getModel();
+        iduser = model.getValueAt(row, 0).toString();
+        username.setText(model.getValueAt(row, 1).toString());
+        password.setText(model.getValueAt(row, 2).toString());
+        String lv = model.getValueAt(row, 3).toString();
+        switch(lv){
+            case "0":
+                level.setSelectedIndex(0);
+                break;
+            default:
+                level.setSelectedIndex(1);
+                break;
+        }
     }//GEN-LAST:event_tableUserMouseClicked
 
     private void levelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_levelActionPerformed
-        // TODO add your handling code here:
         lev = level.getSelectedIndex();
     }//GEN-LAST:event_levelActionPerformed
 
     private void hapusMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_hapusMouseClicked
-        // TODO add your handling code here:
-        //pemanggilan fungsi koneksi database yang sudah kita buat pada class koneksi.java
-        Koneksi DB = new Koneksi();
-        DB.config();
-        con = DB.con;
-        stat = DB.stm;
-        try{
-            java.sql.Timestamp date = new java.sql.Timestamp(new java.util.Date().getTime());
-            stat = con.createStatement();
-            String SQL = "delete from tb_users where id_user ="+iduser;
-            stat.executeUpdate(SQL);
+        query = "DELETE FROM tb_users WHERE id_user ="+iduser;
+        try {
+            stat.executeUpdate(query);
             tabel();
             stat.close();
-            con.close();
-            Clear();
+            DB.conn.close();
+            clear();
             JOptionPane.showMessageDialog(null, "berhasil dihapus");
-            
-        }catch(Exception exc){
+        }catch(SQLException exc){
             System.err.println(exc.getMessage());
         }
     }//GEN-LAST:event_hapusMouseClicked
 
     private void editMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_editMouseClicked
-        // TODO add your handling code here:
-        //pemanggilan fungsi koneksi database yang sudah kita buat pada class koneksi.java
-        Koneksi DB = new Koneksi();
-        DB.config();
-        con = DB.con;
-        stat = DB.stm;
-        try {
-            Timestamp date = new Timestamp(new Date().getTime());
-            stat = con.createStatement();
-            String SQL = "update tb_users set username ='"+username.getText()+"',password='"+password.getText()+"',level='"+lev+"' where id_user="+iduser;
-            stat.executeUpdate(SQL);
+        query = "UPDATE tb_users SET username ='"+username.getText()
+              + "',password='"+password.getText()+"',level='"+lev
+              + "' WHERE id_user="+iduser;
+        try { 
+            stat.executeUpdate(query);
             tabel();
             stat.close();
-            con.close();
-            Clear();
-            JOptionPane.showMessageDialog(null, "berhasil diupdate");
-            
-        } catch(Exception exc) {
+            DB.conn.close();
+            clear();
+            JOptionPane.showMessageDialog(null, "berhasil diupdate");            
+        } catch(SQLException exc) {
             System.err.println(exc.getMessage());
         }
     }//GEN-LAST:event_editMouseClicked
@@ -297,39 +283,6 @@ public class Users extends javax.swing.JFrame {
         });
     }
     
-    private void tabel(){
-        //pemanggilan fungsi koneksi database yang sudah kita buat pada class koneksi.java
-        Koneksi DB = new Koneksi();
-        DB.config();
-        con = DB.con;
-        stat = DB.stm;
-        
-        DefaultTableModel tb= new DefaultTableModel();
-        // Memberi nama pada setiap kolom tabel
-        tb.addColumn("ID User");
-        tb.addColumn("Username");
-        tb.addColumn("Level");
-        tb.addColumn("Last Login");
-        tableUser.setModel(tb);
-        try {
-            // Mengambil data dari database
-            rs=stat.executeQuery("SELECT * FROM tb_users");
-
-            while (rs.next()){
-                // Mengambil data dari database berdasarkan nama kolom pada tabel
-                // Lalu di tampilkan ke dalam JTable
-                tb.addRow(new Object[]{
-                    rs.getInt("id_user"),
-                    rs.getString("username"),
-                    rs.getString("level"),
-                    rs.getDate("last_login")
-                });
-            }
-        } catch (Exception e){
-        
-        }
-    }
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton edit;
     private javax.swing.JButton hapus;

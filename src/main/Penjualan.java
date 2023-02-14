@@ -1,44 +1,26 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package main;
-
-import java.sql.Connection;
-import java.sql.DriverManager;
+import utility.KoneksiDB;
 import java.sql.Statement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.Format;
 import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
-import javax.security.auth.Subject;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
 /**
- *
  * @author user
  */
 public class Penjualan extends javax.swing.JFrame {
-    // deklarasi
-    Connection con;
-    Statement stat;
+    KoneksiDB DB = new KoneksiDB();
+    Statement stat = DB.stat;
     ResultSet rs;
-    String sql;
-    String lev;
-    String idpes;
-    String idpenjualan;
-    String pembayaran;
-    String jum, harga;
+    String query, lev, idpes, idpenjualan, pembayaran, jum, harga;
     int angkajum, angkaharga;
     
-    /**
-     * Creates new form Penjualan
-     */
     public Penjualan() {
         initComponents();
         setLocationRelativeTo(null);
@@ -46,55 +28,20 @@ public class Penjualan extends javax.swing.JFrame {
         comboboxPesanan();
     }
 
-
-    public void comboboxPesanan(){
-        //pemanggilan fungsi koneksi database yang sudah kita buat pada class koneksi.java
-        Koneksi DB = new Koneksi();
-        DB.config();
-        con = DB.con;
-        stat = DB.stm;
-        try {
-            stat = con.createStatement();
-            String SQL = "select * from tb_pesanan inner join tb_kategori on tb_pesanan.id_kategori = tb_kategori.id_kategori where status='baru'";
-            rs = stat.executeQuery(SQL);
-            while (rs.next()) {
-                comboPesanan.addItem(rs.getString(1)+" - "+rs.getString(2)+" - "+rs.getString(3)+" - "+rs.getString(4)+" - "+rs.getString(12));
-                //kategori adalah nama variabel Jcombobox
-                //rs.getString(2) adalah kolom nama_kategori yang diambil secara urut dimulai dari satu
-            }
-
-        } catch(Exception exc) {
-            System.err.println(exc.getMessage());
-        }
-    }    
-    
-    private void Clear(){
-        total.setText(null);
-    }     
- 
     private void tabel(){
-        //pemanggilan fungsi koneksi database yang sudah kita buat pada class koneksi.java
-        Koneksi DB = new Koneksi();
-        DB.config();
-        con = DB.con;
-        stat = DB.stm;
-        
-        DefaultTableModel tb= new DefaultTableModel();
-        // Memberi nama pada setiap kolom tabel
-        tb.addColumn("ID Penjualan");
-        tb.addColumn("ID Pesanan");
+        DefaultTableModel tb = new DefaultTableModel();
+        tb.addColumn("Id Penjualan");
+        tb.addColumn("Id Pesanan");
         tb.addColumn("Jenis Pembayaran");
         tb.addColumn("Total");
         tb.addColumn("Tgl Pembayaran");
         tablePenjualan.setModel(tb);
         
+        query = "SELECT * FROM tb_penjualan";
+        String tgl="",a="",b="",c="";
         try {
-            // Mengambil data dari database
-            rs=stat.executeQuery("SELECT * FROM tb_penjualan");
-            String tgl="",a="",b="",c="";
-            while (rs.next()) {
-                // Mengambil data dari database berdasarkan nama kolom pada tabel
-                // Lalu di tampilkan ke dalam JTable
+            rs = stat.executeQuery(query);            
+            while(rs.next()) {
                 tgl = rs.getString("tanggal_pembayaran");
                 a = tgl.substring(8,10);
                 b = tgl.substring(5,7);
@@ -108,10 +55,33 @@ public class Penjualan extends javax.swing.JFrame {
                     tgl
                 });
             }
-        } catch(Exception e){
+        } catch(SQLException e){
             System.err.println(e.getMessage());
         }
     }
+
+    public void comboboxPesanan(){
+        query = "SELECT * FROM tb_pesanan INNER JOIN tb_kategori ON "
+              + "tb_pesanan.id_kategori = tb_kategori.id_kategori WHERE "
+              + "status='baru'";
+        try {
+            rs = stat.executeQuery(query);
+            while (rs.next()) {
+                comboPesanan.addItem(rs.getString(1)+" - "+rs.getString(2)
+                +" - "+rs.getString(3)+" - "+rs.getString(4)+" - "+rs.getString(12));
+                //kategori adalah nama variabel Jcombobox
+                //rs.getString(2) adalah kolom nama_kategori yang diambil secara urut dimulai dari satu
+            }
+        } catch(SQLException e) {
+            System.err.println(e.getMessage());
+        }
+    }    
+    
+    private void clear(){
+        total.setText(null);
+    }     
+ 
+    
     
     /**
      * This method is called from within the constructor to initialize the form.
@@ -266,79 +236,55 @@ public class Penjualan extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void tambahMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tambahMouseClicked
-        // TODO add your handling code here:
-        //pemanggilan fungsi koneksi database yang sudah kita buat pada class koneksi.java
-        Koneksi DB = new Koneksi();
-        DB.config();
-        con = DB.con;
-        stat = DB.stm;
+        Format formatter = new SimpleDateFormat("YYYY-MM-dd");
+        String tglbayar = formatter.format(tglBayar.getDate());
+        query = "INSERT INTO tb_penjualan(id_pesanan,jenis_pembayaran,total,tanggal_pembayaran,id_user) "
+              + "VALUES('"+idpes+"','"+comboBayar.getSelectedItem()+"','"+total.getText()+"','"+tglbayar+"','"+1+"')";
         try {
-            Format formatter = new SimpleDateFormat("YYYY-MM-dd");
-            String tglbayar = formatter.format(tglBayar.getDate());
-            stat = con.createStatement();
-            String SQL = "INSERT INTO tb_penjualan(id_pesanan,jenis_pembayaran,total,tanggal_pembayaran,id_user) "
-                        + "VALUES('"+idpes+"','"+comboBayar.getSelectedItem()+"','"+total.getText()+"','"+tglbayar+"','"+1+"')";
-            stat.executeUpdate(SQL);
+            stat.executeUpdate(query);
             tabel();
             stat.close();
-            con.close();
-            Clear();
+            DB.conn.close();
+            clear();
             JOptionPane.showMessageDialog(null, "berhasil simpan");
-        } catch(Exception exc){
-            System.err.println(exc.getMessage());
+        } catch(SQLException e) {
+            System.err.println(e.getMessage());
         }
     }//GEN-LAST:event_tambahMouseClicked
 
     private void editMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_editMouseClicked
-        // TODO add your handling code here:
-        //pemanggilan fungsi koneksi database yang sudah kita buat pada class koneksi.java
-        Koneksi DB = new Koneksi();
-        DB.config();
-        con = DB.con;
-        stat = DB.stm;
+        Format formatter = new SimpleDateFormat("YYYY-MM-dd");
+        String tglbayar = formatter.format(tglBayar.getDate());
+        query = "UPDATE tb_penjualan SET jenis_pembayaran ='"+comboBayar.getSelectedItem()
+              + "',tanggal_pembayaran ='"+tglbayar+"',total='"+total.getText()
+              + "' WHERE id_penjualan="+idpenjualan;
         try {
-            Format formatter = new SimpleDateFormat("YYYY-MM-dd");
-            String tglbayar = formatter.format(tglBayar.getDate());
-            Timestamp date = new Timestamp(new Date().getTime());
-            stat = con.createStatement();
-            String SQL = "update tb_penjualan set jenis_pembayaran ='"+comboBayar.getSelectedItem()
-                       +"',tanggal_pembayaran ='"+tglbayar+"',total='"+total.getText()
-                       +"' where id_penjualan="+idpenjualan;
-            stat.executeUpdate(SQL);
+            stat.executeUpdate(query);
             tabel();
             stat.close();
-            con.close();
-            Clear();
+            DB.conn.close();
+            clear();
             JOptionPane.showMessageDialog(null, "berhasil diupdate");
-        }catch(Exception exc){
-            System.err.println(exc.getMessage());
+        } catch(SQLException e) {
+            System.err.println(e.getMessage());
         }
     }//GEN-LAST:event_editMouseClicked
 
     private void hapusMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_hapusMouseClicked
-        // TODO add your handling code here:
-        //pemanggilan fungsi koneksi database yang sudah kita buat pada class koneksi.java
-        Koneksi DB = new Koneksi();
-        DB.config();
-        con = DB.con;
-        stat = DB.stm;
+        query = "DELETE FROM tb_penjualan WHERE id_penjualan ="+idpenjualan;
         try {
-            Timestamp date = new Timestamp(new Date().getTime());
-            stat = con.createStatement();
-            String SQL = "delete from tb_penjualan where id_penjualan ="+idpenjualan;
-            stat.executeUpdate(SQL);
+            stat.executeUpdate(query);
             tabel();
             stat.close();
-            con.close();
-            Clear();
+            DB.conn.close();
+            clear();
             JOptionPane.showMessageDialog(null, "berhasil dihapus");
-        }catch(Exception exc){
-            System.err.println(exc.getMessage());
+        }catch(SQLException e){
+            System.err.println(e.getMessage());
         }
     }//GEN-LAST:event_hapusMouseClicked
 
     private void tablePenjualanMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tablePenjualanMouseClicked
-        // TODO add your handling code here:
         int row = tablePenjualan.getSelectedRow();
         TableModel model = tablePenjualan.getModel();
         idpenjualan = model.getValueAt(row, 0).toString();
@@ -347,7 +293,6 @@ public class Penjualan extends javax.swing.JFrame {
     }//GEN-LAST:event_tablePenjualanMouseClicked
 
     private void comboPesananActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboPesananActionPerformed
-        // TODO add your handling code here:
         lev = comboPesanan.getSelectedItem().toString();
         idpes = lev.split(" - ")[0]; 
         jum = lev.split(" - ")[3];
@@ -355,7 +300,6 @@ public class Penjualan extends javax.swing.JFrame {
         
         angkajum = Integer.parseInt(jum);
         angkaharga = Integer.parseInt(harga);
-        
         total.setText(String.valueOf(angkaharga*angkajum));
     }//GEN-LAST:event_comboPesananActionPerformed
 

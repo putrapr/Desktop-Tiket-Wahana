@@ -1,19 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package main;
 
 import com.toedter.calendar.JDateChooser;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Date;
-import net.sf.jasperreports.engine.JasperFillManager;
-import net.sf.jasperreports.engine.JasperPrint;
-import net.sf.jasperreports.view.JasperViewer;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -22,13 +11,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import javax.swing.JOptionPane;
-import javax.swing.JTextField;
-//import net.sf.jasperreports.engine.JRException;
-//import net.sf.jasperreports.engine.JasperCompileManager;
-//import net.sf.jasperreports.engine.JasperReport;
-//import net.sf.jasperreports.engine.design.JasperDesign;
-//import net.sf.jasperreports.engine.util.JRLoader;
-//import net.sf.jasperreports.engine.xml.JRXmlLoader;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
@@ -36,18 +18,10 @@ import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.util.JRLoader;
 import net.sf.jasperreports.view.JasperViewer;
 
-import org.jfree.io.IOUtils;
-
 /**
- *
  * @author user
  */
 public class Dashboard extends javax.swing.JFrame {
-
-//    public String usernamelogin;
-    /**
-     * Creates new form Dashboard
-     */
     public Dashboard() {
         initComponents();
         setLocationRelativeTo(null);
@@ -211,13 +185,11 @@ public class Dashboard extends javax.swing.JFrame {
     }//GEN-LAST:event_menuPesananMouseClicked
 
     private void menuKategoriActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuKategoriActionPerformed
-        // TODO add your handling code here:
         Kategori db = new Kategori();
         db.setVisible(true);
     }//GEN-LAST:event_menuKategoriActionPerformed
 
     private void menuUsersActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuUsersActionPerformed
-        // TODO add your handling code here:
         Users db = new Users();
         db.setVisible(true);
     }//GEN-LAST:event_menuUsersActionPerformed

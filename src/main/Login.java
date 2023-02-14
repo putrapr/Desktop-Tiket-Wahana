@@ -1,38 +1,26 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package main;
+import utility.KoneksiDB;
 import java.awt.HeadlessException;
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Date;
 import javax.swing.JOptionPane;
+
 /**
- *
  * @author user
  */
 public class Login extends javax.swing.JFrame {
-    // deklarasi
-    Connection con;
-    Statement stat;
+    Timestamp date = new Timestamp(new Date().getTime());
+    KoneksiDB DB = new KoneksiDB();
+    Statement stat = DB.stat;
     ResultSet rs;
-    String sql;
-    /**
-     * Creates new form Login_Form
-     */
+    String query;
+    
     public Login() {
         initComponents();
         setLocationRelativeTo(null);
-        //pemanggilan fungsi koneksi database yang sudah kita buat pada class koneksi.java
-        Koneksi DB = new Koneksi();
-        DB.config();
-        con = DB.con;
-        stat = DB.stm;
     }
 
     /**
@@ -54,8 +42,8 @@ public class Login extends javax.swing.JFrame {
         pass = new javax.swing.JPasswordField();
         jSeparator1 = new javax.swing.JSeparator();
         jSeparator2 = new javax.swing.JSeparator();
-        jPanel4 = new javax.swing.JPanel();
-        signin = new javax.swing.JLabel();
+        panel_signin = new javax.swing.JPanel();
+        lb_signin = new javax.swing.JLabel();
         close = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
@@ -140,38 +128,38 @@ public class Login extends javax.swing.JFrame {
         jPanel3.add(jSeparator1, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 120, 210, 20));
         jPanel3.add(jSeparator2, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 178, 210, 10));
 
-        jPanel4.setBackground(new java.awt.Color(186, 79, 84));
-        jPanel4.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 204, 204)));
-        jPanel4.addMouseListener(new java.awt.event.MouseAdapter() {
+        panel_signin.setBackground(new java.awt.Color(186, 79, 84));
+        panel_signin.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 204, 204)));
+        panel_signin.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jPanel4MouseClicked(evt);
+                panel_signinMouseClicked(evt);
             }
         });
 
-        signin.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
-        signin.setForeground(new java.awt.Color(204, 204, 204));
-        signin.setText("Sign In");
-        signin.addMouseListener(new java.awt.event.MouseAdapter() {
+        lb_signin.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
+        lb_signin.setForeground(new java.awt.Color(204, 204, 204));
+        lb_signin.setText("Sign In");
+        lb_signin.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                signinMouseClicked(evt);
+                lb_signinMouseClicked(evt);
             }
         });
 
-        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
-        jPanel4.setLayout(jPanel4Layout);
-        jPanel4Layout.setHorizontalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel4Layout.createSequentialGroup()
+        javax.swing.GroupLayout panel_signinLayout = new javax.swing.GroupLayout(panel_signin);
+        panel_signin.setLayout(panel_signinLayout);
+        panel_signinLayout.setHorizontalGroup(
+            panel_signinLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panel_signinLayout.createSequentialGroup()
                 .addGap(30, 30, 30)
-                .addComponent(signin)
+                .addComponent(lb_signin)
                 .addContainerGap(31, Short.MAX_VALUE))
         );
-        jPanel4Layout.setVerticalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(signin, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE)
+        panel_signinLayout.setVerticalGroup(
+            panel_signinLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(lb_signin, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE)
         );
 
-        jPanel3.add(jPanel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(130, 190, 100, 30));
+        jPanel3.add(panel_signin, new org.netbeans.lib.awtextra.AbsoluteConstraints(130, 190, 100, 30));
 
         close.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
         close.setText("X");
@@ -237,69 +225,48 @@ public class Login extends javax.swing.JFrame {
         System.exit(0);
     }//GEN-LAST:event_closeMouseClicked
 
-    private void signinMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_signinMouseClicked
-        // TODO add your handling code here:
+    private void perbaruiLastLogin(String pid_user){
+        query = "UPDATE tb_users SET last_login ='"+date
+              + "' WHERE id_user="+pid_user;
         try {
-            sql = "SELECT * FROM tb_users WHERE username='"+username.getText()+"' AND password='"+pass.getText()+"'";
-            rs = stat.executeQuery(sql);
-            if(rs.next()){
-                if(username.getText().equals(rs.getString("username")) && pass.getText().equals(rs.getString("password"))){
-                    //JOptionPane.showMessageDialog(null, "berhasil login");
+            stat.executeUpdate(query);
+            stat.close();
+            DB.conn.close();            
+        } catch(SQLException e) {
+            System.err.println(e.getMessage());
+        }
+    }
+    
+    private void panel_signinMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_panel_signinMouseClicked
+        klikLogin(); 
+    }//GEN-LAST:event_panel_signinMouseClicked
+
+    private void lb_signinMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lb_signinMouseClicked
+        klikLogin();
+    }//GEN-LAST:event_lb_signinMouseClicked
+
+    public void klikLogin(){
+        query = "SELECT * FROM tb_users WHERE username='"+username.getText()
+              + "' AND password='"+pass.getText()+"'";
+        try {
+            rs = stat.executeQuery(query);
+            if (rs.next()) {
+                if (username.getText().equals(rs.getString("username")) 
+                    && pass.getText().equals(rs.getString("password"))){
                     String id = rs.getString("id_user");
                     perbaruiLastLogin(id);
                     Dashboard db = new Dashboard();
                     db.setVisible(true);
                     dispose();
                 }
-            }else{
-                    JOptionPane.showMessageDialog(null, "username atau password salah");
-                }
+            } else {
+                JOptionPane.showMessageDialog(null, "username atau password salah");
+            }
         } catch (HeadlessException | SQLException e) {
             JOptionPane.showMessageDialog(this, e.getMessage());
-        }
-        
-    }//GEN-LAST:event_signinMouseClicked
-
-    private void perbaruiLastLogin(String pid_user){
-        Timestamp date = new Timestamp(new Date().getTime());
-        String query = "";
-        Koneksi DB = new Koneksi();
-        DB.config();
-        con = DB.con;
-        stat = DB.stm;
-        try {
-            stat = con.createStatement();
-            String SQL = "update tb_users set last_login ='"+date+"' where id_user="+pid_user;
-            stat.executeUpdate(SQL);
-            stat.close();
-            con.close();            
-        } catch(Exception exc) {
-            System.err.println(exc.getMessage());
         }
     }
     
-    private void jPanel4MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanel4MouseClicked
-        // TODO add your handling code here:
-        try {
-            sql = "SELECT * FROM tb_users WHERE username='"+username.getText()+"' AND password='"+pass.getText()+"'";
-            rs = stat.executeQuery(sql);
-            if(rs.next()){
-                if(username.getText().equals(rs.getString("username")) && pass.getText().equals(rs.getString("password"))){
-                    //JOptionPane.showMessageDialog(null, "berhasil login");
-                    //Dashboard db = new Dashboard();
-                    Dashboard db = new Dashboard();
-//                    db.usernamelogin = "admin";
-                    db.setVisible(true);
-                    dispose();
-                }
-            }else{
-                    JOptionPane.showMessageDialog(null, "username atau password salah");
-                }
-        } catch (HeadlessException | SQLException e) {
-            JOptionPane.showMessageDialog(this, e.getMessage());
-        }        
-    }//GEN-LAST:event_jPanel4MouseClicked
-
     /**
      * @param args the command line arguments
      */
@@ -346,11 +313,11 @@ public class Login extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
-    private javax.swing.JPanel jPanel4;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
+    private javax.swing.JLabel lb_signin;
+    private javax.swing.JPanel panel_signin;
     private javax.swing.JPasswordField pass;
-    private javax.swing.JLabel signin;
     private javax.swing.JTextField username;
     // End of variables declaration//GEN-END:variables
 }
