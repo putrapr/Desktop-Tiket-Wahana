@@ -1,13 +1,18 @@
 package main;
+import com.toedter.calendar.JDateChooser;
+import java.sql.PreparedStatement;
 import utility.KoneksiDB;
 import java.sql.Statement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.Format;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
+import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
@@ -15,41 +20,43 @@ import javax.swing.table.TableModel;
  * @author user
  */
 public class Pesanan extends javax.swing.JFrame {
-    KoneksiDB DB = new KoneksiDB();
-    Statement stat = DB.stat;
-    ResultSet rs;
-    String query;
-    String lev;
-    String idpesanan;
+    private KoneksiDB DB = new KoneksiDB();
+    private Statement stat = DB.stat;
+    private ResultSet rs;
+    private String query, id;
     
     public Pesanan() {
         initComponents();
         setLocationRelativeTo(null);
-        tabel();
-        comboboxdb();
+        tabel("Belum dibayar");
+//        comboboxdb();
     }
     
-    private void tabel(){
+    private void tabel(String status){
         DefaultTableModel tb = new DefaultTableModel();
-        tb.addColumn("Id Pesanan");
+        tb.addColumn("Id");
+        tb.addColumn("Nama");
+        tb.addColumn("No. Telp");
         tb.addColumn("Tgl Tiket");
-        tb.addColumn("Kategori");
+        tb.addColumn("Wahana");
         tb.addColumn("Jumlah");
-        tb.addColumn("Status");
         tb.addColumn("Tgl Pesan");
-        tableUser.setModel(tb);
+        tbl_pesanan.setModel(tb);
         
-        query = "SELECT * FROM tb_pesanan";
+        query = "SELECT * FROM tb_pesanan "
+              + "JOIN tb_kategori ON (tb_pesanan.id_kategori = tb_kategori.id_kategori)"
+              + "WHERE tb_pesanan.status = '"+status+"'";
         try {
             rs = stat.executeQuery(query); //rs = ResultSet <- hasil eksekusi query
             while (rs.next()) {
                 tb.addRow(new Object[]{
                     rs.getString("id_pesanan"),
-                    rs.getString("tanggal_tiket"),
-                    rs.getString("id_kategori"),
+                    rs.getString("nama_pemesan"),
+                    rs.getString("telp_pemesan"),
+                    formatTglId(rs.getString("tanggal_tiket")),
+                    rs.getString("nama"),
                     rs.getString("jumlah"),
-                    rs.getString("status"),
-                    rs.getString("tanggal_pesan")
+                    formatTglId(rs.getString("tanggal_pesan"))
                 });
             }
         } catch(SQLException e) {
@@ -57,18 +64,19 @@ public class Pesanan extends javax.swing.JFrame {
         }
     }    
     
-    public void comboboxdb(){
-        String query = "SELECT * FROM tb_kategori";
-        try {            
-            rs = stat.executeQuery(query);
-            while (rs.next()) {
-                kategori.addItem(rs.getString(1)+" - "+rs.getString(2));
-                //kategori adalah nama variabel Jcombobox
-                //rs.getString(2) adalah kolom nama_kategori yang diambil secara urut dimulai dari satu
-            }
-        } catch(SQLException e){
-            System.err.println(e.getMessage());
-        }
+    private String formatTglId(String ptgl){
+        String tgl = ptgl.substring(8,10);
+        String bulan = ptgl.substring(5,7);
+        String tahun = ptgl.substring(0,4);
+        return tgl+"-"+bulan+"-"+tahun;
+    }
+    
+    private String formatTglEn(String ptgl){
+        // 22-02-2023 to 2023-02-22
+        String tgl = ptgl.split("-")[0];
+        String bulan = ptgl.split("-")[1];
+        String tahun = ptgl.split("-")[2];
+        return tahun+"-"+bulan+"-"+tgl;
     }
     
     /**
@@ -80,75 +88,66 @@ public class Pesanan extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jLabel1 = new javax.swing.JLabel();
-        tambah = new javax.swing.JButton();
-        jLabel2 = new javax.swing.JLabel();
-        jumlah = new javax.swing.JTextField();
-        edit = new javax.swing.JButton();
-        jLabel3 = new javax.swing.JLabel();
-        status = new javax.swing.JTextField();
-        hapus = new javax.swing.JButton();
+        grup_status = new javax.swing.ButtonGroup();
+        btn_edit = new javax.swing.JButton();
+        btn_hapus = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
-        tableUser = new javax.swing.JTable();
-        jLabel4 = new javax.swing.JLabel();
-        kategori = new javax.swing.JComboBox<>();
-        tglTiket = new com.toedter.calendar.JDateChooser();
+        tbl_pesanan = new javax.swing.JTable();
+        jLabel1 = new javax.swing.JLabel();
+        rb_belumDibayar = new javax.swing.JRadioButton();
+        rb_lunas = new javax.swing.JRadioButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("Pesanan");
+        setTitle("Data Pesanan");
 
-        jLabel1.setText("Tgl Tiket");
-
-        tambah.setText("Tambah");
-        tambah.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                tambahMouseClicked(evt);
+        btn_edit.setText("Edit");
+        btn_edit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_editActionPerformed(evt);
             }
         });
 
-        jLabel2.setText("Jumlah");
-
-        edit.setText("Edit");
-        edit.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                editMouseClicked(evt);
+        btn_hapus.setText("Hapus");
+        btn_hapus.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_hapusActionPerformed(evt);
             }
         });
 
-        jLabel3.setText("Status");
-
-        status.setText("baru");
-
-        hapus.setText("Hapus");
-        hapus.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                hapusMouseClicked(evt);
-            }
-        });
-
-        tableUser.setModel(new javax.swing.table.DefaultTableModel(
+        tbl_pesanan.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null}
             },
             new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
+                "Id", "Nama Pemesan", "Telp", "Tgl Tiket", "Wahana", "Jumlah", "Tgl Pesan"
             }
         ));
-        tableUser.addMouseListener(new java.awt.event.MouseAdapter() {
+        tbl_pesanan.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                tableUserMouseClicked(evt);
+                tbl_pesananMouseClicked(evt);
             }
         });
-        jScrollPane1.setViewportView(tableUser);
+        jScrollPane1.setViewportView(tbl_pesanan);
 
-        jLabel4.setText("Kategori");
+        jLabel1.setText("Status");
 
-        kategori.addActionListener(new java.awt.event.ActionListener() {
+        grup_status.add(rb_belumDibayar);
+        rb_belumDibayar.setSelected(true);
+        rb_belumDibayar.setText("Belum dibayar");
+        rb_belumDibayar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                kategoriActionPerformed(evt);
+                rb_belumDibayarActionPerformed(evt);
+            }
+        });
+
+        grup_status.add(rb_lunas);
+        rb_lunas.setText("Lunas");
+        rb_lunas.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rb_lunasActionPerformed(evt);
             }
         });
 
@@ -156,132 +155,191 @@ public class Pesanan extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 526, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(status)
-                                    .addComponent(jumlah, javax.swing.GroupLayout.DEFAULT_SIZE, 347, Short.MAX_VALUE)
-                                    .addComponent(tglTiket, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(0, 0, Short.MAX_VALUE)
-                                .addComponent(jLabel4)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(kategori, javax.swing.GroupLayout.PREFERRED_SIZE, 347, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(55, 55, 55)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(edit, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(tambah, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(hapus, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(15, 15, 15)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 570, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(23, 23, 23)
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(rb_belumDibayar)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(rb_lunas)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btn_edit, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(btn_hapus, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(15, 15, 15))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(49, 49, 49)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(tambah)
-                        .addComponent(jLabel1))
-                    .addComponent(tglTiket, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(19, 19, 19)
+                .addGap(15, 15, 15)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(edit)
-                    .addComponent(kategori, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel4))
-                .addGap(19, 19, 19)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(hapus)
-                    .addComponent(jLabel2)
-                    .addComponent(jumlah, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(status, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 27, Short.MAX_VALUE)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 206, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                    .addComponent(btn_hapus)
+                    .addComponent(btn_edit)
+                    .addComponent(jLabel1)
+                    .addComponent(rb_belumDibayar)
+                    .addComponent(rb_lunas))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 392, Short.MAX_VALUE)
+                .addGap(15, 15, 15))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void Clear(){
-        jumlah.setText(null);
-        status.setText(null);
-    }     
+         
     
-    private void tambahMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tambahMouseClicked
-        Format formatter = new SimpleDateFormat("YYYY-MM-dd");
-        String tgltiket = formatter.format(tglTiket.getDate());
-        Timestamp date = new Timestamp(new Date().getTime());
-        query = "INSERT INTO tb_pesanan(tanggal_tiket,id_kategori,jumlah,status,tanggal_pesan) "
-                       + "VALUES('"+tgltiket+"','"+lev+"','"+jumlah.getText()+"','"+status.getText()+"','"+date+"')";
-        try {
-            stat.executeUpdate(query);
-            tabel();
-            stat.close();
-            DB.conn.close();
-            Clear();
-            JOptionPane.showMessageDialog(null, "berhasil simpan");
-        } catch(Exception exc) {
-            System.err.println(exc.getMessage());
-        }
-    }//GEN-LAST:event_tambahMouseClicked
+    private void tbl_pesananMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tbl_pesananMouseClicked
+//        int row = tableUser.getSelectedRow();
+//        TableModel model = tableUser.getModel();
+//        idpesanan = model.getValueAt(row, 0).toString();
+//        jumlah.setText(model.getValueAt(row, 3).toString());
+//        status.setText(model.getValueAt(row, 4).toString());
+    }//GEN-LAST:event_tbl_pesananMouseClicked
 
-    private void editMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_editMouseClicked
-        Format formatter = new SimpleDateFormat("YYYY-MM-dd");
-        String tgltiket = formatter.format(tglTiket.getDate());
-        query = "UPDATE tb_pesanan SET tanggal_tiket='"+tgltiket
-              +"',id_kategori='"+lev+"',jumlah='"+jumlah.getText()
-              +"',status='"+status.getText()+"' WHERE id_pesanan="+idpesanan;
+    private void rb_belumDibayarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rb_belumDibayarActionPerformed
+        tabel("Belum dibayar");
+    }//GEN-LAST:event_rb_belumDibayarActionPerformed
+
+    private void rb_lunasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rb_lunasActionPerformed
+        tabel("Lunas");
+    }//GEN-LAST:event_rb_lunasActionPerformed
+
+    private void btn_editActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_editActionPerformed
+        int bar = tbl_pesanan.getSelectedRow();
+        if (bar == -1) JOptionPane.showMessageDialog(null, "Pilih baris data yang ingin diubah !");
+        else {
+            TableModel tabmode = tbl_pesanan.getModel();
+            id = tabmode.getValueAt(bar, 0).toString();
+            String nama = tabmode.getValueAt(bar, 1).toString();
+            String telp = tabmode.getValueAt(bar, 2).toString();
+            String str_tglTiket = formatTglEn(tabmode.getValueAt(bar, 3).toString());
+            String wahana = tabmode.getValueAt(bar, 4).toString();
+            String jumlah = tabmode.getValueAt(bar, 5).toString();
+            
+            JTextField tf_nama = new JTextField();
+            JTextField tf_telp = new JTextField();
+            JDateChooser dt_tglTiket = new JDateChooser();
+            JComboBox cb_wahana = new JComboBox();            
+            JTextField tf_jumlah = new JTextField();
+            
+            System.out.println(str_tglTiket);
+            
+            try {
+                Date tglTiket = new SimpleDateFormat("yyyy-MM-dd").parse(str_tglTiket);
+                dt_tglTiket.setDate(tglTiket);
+            } catch(ParseException e){
+                System.err.println(e.getMessage());
+            }
+            tf_nama.setText(nama);
+            tf_telp.setText(telp);
+            setOpsiWahana(cb_wahana);
+            cb_wahana.setSelectedItem(wahana);
+            tf_jumlah.setText(jumlah);
+
+            Object[] fields = {
+                "Nama :", tf_nama,
+                "Telp :", tf_telp,
+                "Tgl Tiket: ", dt_tglTiket,
+                "Wahana :", cb_wahana,
+                "Jumlah :", tf_jumlah
+            };
+            int ok = JOptionPane.showConfirmDialog(null, fields, "Ubah Pesanan",
+                     JOptionPane.OK_CANCEL_OPTION);
+            if (ok==0){
+                Format formatter = new SimpleDateFormat("YYYY-MM-dd");
+                str_tglTiket = formatter.format(dt_tglTiket.getDate());
+                wahana = cb_wahana.getSelectedItem().toString();
+                
+                query = "UPDATE tb_pesanan SET "
+                      + "nama_pemesan='"+tf_nama.getText()+"', telp_pemesan='"+tf_telp.getText()
+                      + "', tanggal_tiket='"+str_tglTiket+"', id_kategori='"+getIdKategori(wahana)
+                      + "', jumlah='"+tf_jumlah.getText()+"' "
+                      + "WHERE id_pesanan='"+id+"'";
+                try {
+                    stat.executeUpdate(query);
+                    JOptionPane.showMessageDialog(null, "Berhasil Diubah");
+                    tabel("Belum dibayar");
+                } catch(SQLException e){
+                    System.err.println(e.getMessage());
+                }                
+            }
+        }
+    }//GEN-LAST:event_btn_editActionPerformed
+
+    private void btn_hapusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_hapusActionPerformed
+        int bar = tbl_pesanan.getSelectedRow();
+        if (bar == -1) JOptionPane.showMessageDialog(null, "Pilih baris data yang ingin diubah !");
+        else {
+            TableModel tabmode = tbl_pesanan.getModel();
+            id = tabmode.getValueAt(bar, 0).toString();            
+            if (cekIdPesanan(id)){
+                int ok = JOptionPane.showConfirmDialog(null,
+                        "id pesanan ini pada tabel penjualan juga akan ikut terhapus, Yakin ?",
+                        "Konfirmasi Dialog", JOptionPane.YES_NO_OPTION);
+                if (ok==0){
+                    String query2 = "DELETE FROM tb_penjualan WHERE id_pesanan ='"+id+"'";
+                    query = "DELETE FROM tb_pesanan WHERE id_pesanan ='"+id+"'";
+                    try {
+                        stat.executeUpdate(query2);
+                        stat.executeUpdate(query);
+                        tabel("Belum dibayar");
+                        JOptionPane.showMessageDialog(null, "berhasil dihapus");
+                    } catch(SQLException e){
+                        System.err.println(e.getMessage());
+                    }
+                }
+            } else {
+                query = "DELETE FROM tb_pesanan WHERE id_pesanan ='"+id+"'";
+                try {
+                    stat.executeUpdate(query);
+                    tabel("Belum dibayar");
+                    JOptionPane.showMessageDialog(null, "berhasil dihapus");
+                } catch(SQLException e){
+                    System.err.println(e.getMessage());
+                }
+            }            
+        }
+    }//GEN-LAST:event_btn_hapusActionPerformed
+
+    private boolean cekIdPesanan(String pid){
+        query = "SELECT id_pesanan FROM tb_penjualan WHERE id_pesanan = '"+pid+"'";
         try {
-            stat.executeUpdate(query);
-            tabel();
-            stat.close();
-            DB.conn.close();
-            Clear();
-            JOptionPane.showMessageDialog(null, "berhasil diupdate");
-        } catch(SQLException e) {
+            rs = stat.executeQuery(query);
+            if (rs.next()) return true;
+        } catch(SQLException e){
             System.err.println(e.getMessage());
         }
-    }//GEN-LAST:event_editMouseClicked
-
-    private void hapusMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_hapusMouseClicked
-        query = "DELETE FROM tb_pesanan WHERE id_pesanan ="+idpesanan;
-        try {
-            stat.executeUpdate(query);
-            tabel();
-            stat.close();
-            DB.conn.close();
-            Clear();
-            JOptionPane.showMessageDialog(null, "berhasil dihapus");
-        } catch(SQLException e) {
+        return false;
+    }
+    
+    private void setOpsiWahana(JComboBox pwahana){
+        query = "SELECT * FROM tb_kategori";
+        try {            
+            rs = stat.executeQuery(query);
+            while (rs.next()) pwahana.addItem(rs.getString(2));
+        } catch(SQLException e){
             System.err.println(e.getMessage());
         }
-    }//GEN-LAST:event_hapusMouseClicked
+    }
+        
+    private String getIdKategori(String pwahana){
+        query = "SELECT id_kategori FROM tb_kategori "
+              + "WHERE nama = '"+pwahana+"'";
+        try {
+            rs = stat.executeQuery(query);
+            if (rs.next()) return rs.getString("id_kategori");
+        } catch(SQLException e){
+            System.err.println(e.getMessage());
+        }
+        return "";
+    }
 
-    private void tableUserMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tableUserMouseClicked
-        int row = tableUser.getSelectedRow();
-        TableModel model = tableUser.getModel();
-        idpesanan = model.getValueAt(row, 0).toString();
-        jumlah.setText(model.getValueAt(row, 3).toString());
-        status.setText(model.getValueAt(row, 4).toString());
-    }//GEN-LAST:event_tableUserMouseClicked
-
-    private void kategoriActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_kategoriActionPerformed
-        lev = kategori.getSelectedItem().toString();
-        lev = lev.split(" - ")[0];
-    }//GEN-LAST:event_kategoriActionPerformed
+    
 
     /**
      * @param args the command line arguments
@@ -319,18 +377,13 @@ public class Pesanan extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton edit;
-    private javax.swing.JButton hapus;
+    private javax.swing.JButton btn_edit;
+    private javax.swing.JButton btn_hapus;
+    private javax.swing.ButtonGroup grup_status;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextField jumlah;
-    private javax.swing.JComboBox<String> kategori;
-    private javax.swing.JTextField status;
-    private javax.swing.JTable tableUser;
-    private javax.swing.JButton tambah;
-    private com.toedter.calendar.JDateChooser tglTiket;
+    private javax.swing.JRadioButton rb_belumDibayar;
+    private javax.swing.JRadioButton rb_lunas;
+    private javax.swing.JTable tbl_pesanan;
     // End of variables declaration//GEN-END:variables
 }

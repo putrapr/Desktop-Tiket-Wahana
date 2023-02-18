@@ -188,8 +188,6 @@ public class Users extends javax.swing.JFrame {
         try {            
             stat.executeUpdate(query);
             tabel();
-            stat.close();
-            DB.conn.close();
             clear();
             JOptionPane.showMessageDialog(null, "berhasil simpan");            
         } catch(SQLException e) {
@@ -202,8 +200,7 @@ public class Users extends javax.swing.JFrame {
         TableModel model = tableUser.getModel();
         iduser = model.getValueAt(row, 0).toString();
         username.setText(model.getValueAt(row, 1).toString());
-        password.setText(model.getValueAt(row, 2).toString());
-        String lv = model.getValueAt(row, 3).toString();
+        String lv = model.getValueAt(row, 2).toString();
         switch(lv){
             case "0":
                 level.setSelectedIndex(0);
@@ -223,8 +220,6 @@ public class Users extends javax.swing.JFrame {
         try {
             stat.executeUpdate(query);
             tabel();
-            stat.close();
-            DB.conn.close();
             clear();
             JOptionPane.showMessageDialog(null, "berhasil dihapus");
         }catch(SQLException exc){
@@ -239,8 +234,6 @@ public class Users extends javax.swing.JFrame {
         try { 
             stat.executeUpdate(query);
             tabel();
-            stat.close();
-            DB.conn.close();
             clear();
             JOptionPane.showMessageDialog(null, "berhasil diupdate");            
         } catch(SQLException exc) {

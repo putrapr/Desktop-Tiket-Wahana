@@ -16,7 +16,7 @@ public class Login extends javax.swing.JFrame {
     KoneksiDB DB = new KoneksiDB();
     Statement stat = DB.stat;
     ResultSet rs;
-    String query;
+    String query, id_user;
     
     public Login() {
         initComponents();
@@ -226,12 +226,9 @@ public class Login extends javax.swing.JFrame {
     }//GEN-LAST:event_closeMouseClicked
 
     private void perbaruiLastLogin(String pid_user){
-        query = "UPDATE tb_users SET last_login ='"+date
-              + "' WHERE id_user="+pid_user;
+        query = "UPDATE tb_users SET last_login ='"+date+ "' WHERE id_user="+pid_user;
         try {
             stat.executeUpdate(query);
-            stat.close();
-            DB.conn.close();            
         } catch(SQLException e) {
             System.err.println(e.getMessage());
         }
@@ -253,9 +250,10 @@ public class Login extends javax.swing.JFrame {
             if (rs.next()) {
                 if (username.getText().equals(rs.getString("username")) 
                     && pass.getText().equals(rs.getString("password"))){
-                    String id = rs.getString("id_user");
-                    perbaruiLastLogin(id);
-                    Dashboard db = new Dashboard();
+                    id_user = rs.getString("id_user");
+                    System.out.println(id_user);
+                    perbaruiLastLogin(id_user);
+                    Dashboard db = new Dashboard(id_user);
                     db.setVisible(true);
                     dispose();
                 }

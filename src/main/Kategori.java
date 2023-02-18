@@ -28,7 +28,7 @@ public class Kategori extends javax.swing.JFrame {
     private void tabel(){
         DefaultTableModel tb= new DefaultTableModel();
         tb.addColumn("No");
-        tb.addColumn("Nama");
+        tb.addColumn("Wahana");
         tb.addColumn("Harga");
         tb.addColumn("Stok");
         tb.addColumn("Pajak");
@@ -127,13 +127,13 @@ public class Kategori extends javax.swing.JFrame {
 
         tableUser.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null}
             },
             new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
+                "No", "Nama", "Harga", "Stok", "Pajak", "Harga Jual"
             }
         ));
         tableUser.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -217,11 +217,8 @@ public class Kategori extends javax.swing.JFrame {
         try {
             stat.executeUpdate(query);
             tabel();
-            stat.close();
-            DB.conn.close();
             clear();
             JOptionPane.showMessageDialog(null, "berhasil simpan");
-
         } catch(SQLException e) {
             System.err.println(e.getMessage());
         }
@@ -231,15 +228,13 @@ public class Kategori extends javax.swing.JFrame {
         angkapajak = Integer.parseInt(pajak.getText());
         angkaharga = Integer.parseInt(harga.getText());
         hargajual = (angkaharga*angkapajak/100)+angkaharga;
-        String query = "UPDATE tb_kategori SET nama ='"+nama.getText()
-                     +"',harga='"+harga.getText()+"',stok='"+stok.getText()
-                     +"',pajak='"+pajak.getText()+"',harga_jual='"+hargajual
-                     +"' WHERE id_kategori="+idkategori;        
+        query = "UPDATE tb_kategori SET nama ='"+nama.getText()
+              + "',harga='"+harga.getText()+"',stok='"+stok.getText()
+              + "',pajak='"+pajak.getText()+"',harga_jual='"+hargajual
+              + "' WHERE id_kategori="+idkategori;        
         try {            
             stat.executeUpdate(query);
             tabel();
-            stat.close();
-            DB.conn.close();
             clear();
             JOptionPane.showMessageDialog(null, "berhasil diupdate");
         } catch(SQLException e) {
@@ -252,8 +247,6 @@ public class Kategori extends javax.swing.JFrame {
         try {
             stat.executeUpdate(query);
             tabel();
-            stat.close();
-            DB.conn.close();
             clear();
             JOptionPane.showMessageDialog(null, "berhasil dihapus");
         } catch(SQLException e){

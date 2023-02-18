@@ -1,33 +1,53 @@
 package main;
 
 import com.toedter.calendar.JDateChooser;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.util.Date;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.WindowConstants;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.util.JRLoader;
 import net.sf.jasperreports.view.JasperViewer;
+import utility.KoneksiDB;
 
 /**
  * @author user
  */
 public class Dashboard extends javax.swing.JFrame {
+    final String id_user;
+    KoneksiDB DB = new KoneksiDB();
+    Statement stat = DB.stat;
+    
     public Dashboard() {
         initComponents();
         setLocationRelativeTo(null);
         setExtendedState(java.awt.Frame.MAXIMIZED_BOTH);
         Locale locale = new Locale ("id","ID");
         Locale.setDefault(locale);
+        this.id_user = "2";
+        doSomethingBeforeClosed();        
+    }
+    public Dashboard(String pid_user) {
+        initComponents();
+        setLocationRelativeTo(null);
+        setExtendedState(java.awt.Frame.MAXIMIZED_BOTH);
+        Locale locale = new Locale ("id","ID");
+        Locale.setDefault(locale);
+        this.id_user = pid_user;
     }
 
     /**
@@ -46,6 +66,8 @@ public class Dashboard extends javax.swing.JFrame {
         menuUsers = new javax.swing.JMenuItem();
         menuKategori = new javax.swing.JMenuItem();
         menuPesanan = new javax.swing.JMenu();
+        form_tambahPesanan = new javax.swing.JMenuItem();
+        form_dataPesanan = new javax.swing.JMenuItem();
         menuPenjualan = new javax.swing.JMenu();
         menuReportUsers = new javax.swing.JMenu();
         lap_users = new javax.swing.JMenuItem();
@@ -98,6 +120,23 @@ public class Dashboard extends javax.swing.JFrame {
                 menuPesananMouseClicked(evt);
             }
         });
+
+        form_tambahPesanan.setText("Tambah Pesanan");
+        form_tambahPesanan.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                form_tambahPesananActionPerformed(evt);
+            }
+        });
+        menuPesanan.add(form_tambahPesanan);
+
+        form_dataPesanan.setText("Daftar Pesanan");
+        form_dataPesanan.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                form_dataPesananActionPerformed(evt);
+            }
+        });
+        menuPesanan.add(form_dataPesanan);
+
         jMenuBar1.add(menuPesanan);
 
         menuPenjualan.setText("Penjualan");
@@ -180,8 +219,7 @@ public class Dashboard extends javax.swing.JFrame {
     }//GEN-LAST:event_menuPenjualanMouseClicked
 
     private void menuPesananMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_menuPesananMouseClicked
-        Pesanan db = new Pesanan();
-        db.setVisible(true);
+
     }//GEN-LAST:event_menuPesananMouseClicked
 
     private void menuKategoriActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuKategoriActionPerformed
@@ -341,7 +379,41 @@ public class Dashboard extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_lap_penjualanActionPerformed
 
-      
+    private void form_tambahPesananActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_form_tambahPesananActionPerformed
+        Pemesan db = new Pemesan();
+        db.setVisible(true);
+    }//GEN-LAST:event_form_tambahPesananActionPerformed
+
+    private void form_dataPesananActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_form_dataPesananActionPerformed
+        Pesanan db = new Pesanan();
+        db.setVisible(true);
+    }//GEN-LAST:event_form_dataPesananActionPerformed
+
+    private void doSomethingBeforeClosed(){
+        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        this.addWindowListener(new WindowAdapter(){
+            public void windowClosing(WindowEvent e){
+                JFrame frame = (JFrame)e.getSource();
+
+                int result = JOptionPane.showConfirmDialog(
+                    frame,
+                    "Are you sure you want to exit the application?",
+                    "Exit Application",
+                    JOptionPane.YES_NO_OPTION);
+
+                if (result == JOptionPane.YES_OPTION) {
+                    try {
+                        stat.close();
+                        DB.conn.close();
+                    } catch (SQLException ex) {
+                        System.err.println(ex.getMessage());
+                    }                    
+                    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                }
+            }
+        });
+        this.setVisible(true);
+    }
     
     /**
      * @param args the command line arguments
@@ -380,6 +452,8 @@ public class Dashboard extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private utility.BgMenu bgMenu1;
+    private javax.swing.JMenuItem form_dataPesanan;
+    private javax.swing.JMenuItem form_tambahPesanan;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPanel jPanel2;
